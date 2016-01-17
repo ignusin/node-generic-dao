@@ -59,7 +59,7 @@ var transformKeys = function (obj, transformer) {
         
         transKey = transformer(key);
         
-        if (_.isObject(obj[key])) {
+        if (_.isObject(obj[key]) && !_.isDate(obj[key])) {
             result[transKey] = transformKeys(obj[key], transformer);
         }
         else {

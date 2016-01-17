@@ -22,7 +22,7 @@ describe('infrastructure', function() {
         });
         
         it('exec, save and find', function (done) {
-            PgGenericDao.exec(connStr, eraseAllQuery, [])
+            PgGenericDao.rawExec(connStr, eraseAllQuery, [])
                 .then(function () {
                     dao.save({
                         veryLongName: 'abc',
@@ -50,7 +50,7 @@ describe('infrastructure', function() {
         });
         
         it('exec, save, update and find', function (done) {
-            PgGenericDao.exec(connStr, eraseAllQuery, [])
+            PgGenericDao.rawExec(connStr, eraseAllQuery, [])
                 .then(function () {
                     dao.save({
                         veryLongName: 'abc',
@@ -87,7 +87,7 @@ describe('infrastructure', function() {
         });
         
         it('exec, save, delete and find', function (done) {
-            PgGenericDao.exec(connStr, eraseAllQuery, [])
+            PgGenericDao.rawExec(connStr, eraseAllQuery, [])
                 .then(function () {
                     dao.save({
                         veryLongName: 'abc',
@@ -122,7 +122,7 @@ describe('infrastructure', function() {
         
         it('exec, save and all', function (done) {
             PgGenericDao
-                .exec(connStr, eraseAllQuery, [])
+                .rawExec(connStr, eraseAllQuery, [])
                 .then(function () {
                     dao.save({
                         veryLongName: 'abc',
@@ -159,7 +159,7 @@ describe('infrastructure', function() {
         
         it('exec, save, all filtered', function (done) {
             PgGenericDao
-                .exec(connStr, eraseAllQuery, [])
+                .rawExec(connStr, eraseAllQuery, [])
                 .then(function () {
                     Promise.all([
                         dao.save({ veryLongName: 'abc', shortname: 'def' }),
@@ -194,7 +194,7 @@ describe('infrastructure', function() {
         
         it('exec, save, all sorted', function (done) {
             PgGenericDao
-                .exec(connStr, eraseAllQuery, [])
+                .rawExec(connStr, eraseAllQuery, [])
                 .then(function () {
                     Promise.all([
                         dao.save({ veryLongName: 'abc', shortname: 'def' }),
@@ -231,7 +231,7 @@ describe('infrastructure', function() {
         
         it('exec, save, all paged', function (done) {
             PgGenericDao
-                .exec(connStr, eraseAllQuery, [])
+                .rawExec(connStr, eraseAllQuery, [])
                 .then(function () {
                     Promise.all([
                         dao.save({ veryLongName: 'abc', shortname: 'def' }),
@@ -264,12 +264,12 @@ describe('infrastructure', function() {
                 })
                 .catch(function (err) {
                     done(err);
-                });            
+                });
         });
         
         it('exec, save, all fully extended', function (done) {
             PgGenericDao
-                .exec(connStr, eraseAllQuery, [])
+                .rawExec(connStr, eraseAllQuery, [])
                 .then(function () {
                     Promise.all([
                         dao.save({ veryLongName: 'abc', shortname: 'def' }),

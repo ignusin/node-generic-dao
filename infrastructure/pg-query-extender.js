@@ -25,7 +25,7 @@ var createOrderByClause = function (sorting) {
     return orderClause;    
 };
 
-var createFilterByClause = function (filter, paramIndex) {
+var createFilterByClause = function (filter, alias, paramIndex) {
     if (!_.isArray(filter)) {
         throw 'Invalid filter argument.';
     }
@@ -47,7 +47,7 @@ var createFilterByClause = function (filter, paramIndex) {
                     query += ' AND ';
                 }
                 
-                recResult = createFilterByClause(filter[i], params.length + 1);
+                recResult = createFilterByClause(filter[i], alias, params.length + 1);
                 query += '(' + recResult.query + ')';
                 recResult.params.forEach(function (it) { params.push(it); });
             }
@@ -60,30 +60,32 @@ var createFilterByClause = function (filter, paramIndex) {
                     query += ' OR ';
                 }
                 
-                recResult = createFilterByClause(filter[i], params.length + 1);
+                recResult = createFilterByClause(filter[i], alias, params.length + 1);
                 query += '(' + recResult.query + ')';
                 recResult.params.forEach(function (it) { params.push(it); });
             }
         }
         else if ('$not' === filter[0]) {
             recursive = true;
-            recResult = createFilterByClause(filter[i], params.length + 1);
+            recResult = createFilterByClause(filter[i], alias, params.length + 1);
             
             query = 'NOT (' + recResult.query + ')';
             recResult.params.forEach(function (it) { params.push(it); });
         }
     }
     
+    var aliasPrefix = alias ? alias + '.' : '';
+    
     if (!recursive) {
         if (filter.length === 3) {
-            query = 'r."' + mapper.toFlatFieldName(filter[0]) + '" ' + filter[1] + ' ' + '$' + paramIndex.toString();
+            query = aliasPrefix + '"' + mapper.toFlatFieldName(filter[0]) + '" ' + filter[1] + ' ' + '$' + paramIndex.toString();
             params.push(filter[2]);
         }
         else if (filter.length === 2 && filter[0] === '$isnull') {
-            query = 'r."' + mapper.toFlatFieldName(filter[1]) + '" IS NULL';
+            query = aliasPrefix + '"' + mapper.toFlatFieldName(filter[1]) + '" IS NULL';
         }
         else if (filter.length === 2 && filter[0] === '$notnull') {
-            query = 'r."' + mapper.toFlatFieldName(filter[1]) + '" IS NOT NULL';
+            query = aliasPrefix + '"' + mapper.toFlatFieldName(filter[1]) + '" IS NOT NULL';
         }
         else {
             throw 'Invalid filter ' + JSON.stringify(filter);
@@ -119,7 +121,7 @@ var pageBy = function (query, sorting, paging) {
 };
 
 var filterBy = function (query, filter) {
-    var filterClause = createFilterByClause(filter);
+    var filterClause = createFilterByClause(filter, 'r');
     var filteredQuery = 'SELECT * FROM (' + query + ') r WHERE ' + filterClause.query;
     
     var result = {
@@ -154,5 +156,6 @@ module.exports = {
     extend: extend,
     filterBy: filterBy,
     orderBy: orderBy,
-    pageBy: pageBy
+    pageBy: pageBy,
+    createFilterByClause: createFilterByClause
 };
