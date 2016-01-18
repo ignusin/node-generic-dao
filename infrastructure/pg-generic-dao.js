@@ -38,10 +38,15 @@ PgGenericDao.prototype.map = function () {
 };
 
 PgGenericDao.prototype.save = function (entity) {
+    var toInsert = {};
+    this.map().forEach(function (field) {
+        toInsert[field] = entity[field];
+    });
+    
     var promise = PgGenericDao.insert(
         this.connectionString(),
         this.table(),
-        entity,
+        toInsert,
         'id'
     );
     
@@ -49,10 +54,15 @@ PgGenericDao.prototype.save = function (entity) {
 };
 
 PgGenericDao.prototype.update = function (entity) {
+    var toUpdate = {};
+    this.map().forEach(function (field) {
+        toUpdate[field] = entity[field];
+    });
+    
     var promise = PgGenericDao.update(
         this.connectionString(),
         this.table(),
-        entity,
+        toUpdate,
         [ 'id', '=', entity.id ]
     );
     
@@ -108,12 +118,14 @@ PgGenericDao.rawTransformedQuery = function (connStr, query, params) {
     return new Promise(function (resolve, reject) {
         pg.connect(connStr, function (err, client, done) {
             if (err) {
+                done();
                 reject(err);
                 return;
             }
             
             client.query(query, params, function (err, result) {
                 if (err) {
+                    done();
                     reject(err);
                     return;
                 }
@@ -136,12 +148,14 @@ PgGenericDao.rawExec = function (connStr, query, params) {
     return new Promise(function (resolve, reject) {
         pg.connect(connStr, function (err, client, done) {
             if (err) {
+                done();
                 reject(err);
                 return;
             }
             
             client.query(query, params, function (err, result) {
                 if (err) {
+                    done();
                     reject(err);
                     return;
                 }
