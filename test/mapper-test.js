@@ -1,5 +1,5 @@
 var assert = require('assert');
-var mapper = require('../infrastructure/mapper');
+var mapper = require('../index').mapper;
 
 describe('infrastructure', function() {
     describe('mapper', function () {

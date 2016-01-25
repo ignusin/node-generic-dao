@@ -1,5 +1,5 @@
 var assert          = require('assert');
-var PgGenericDao    = require('../infrastructure/pg-generic-dao');
+var PgGenericDao    = require('../index').PgGenericDao;
 
 describe('infrastructure', function() {
     describe('pg-generic-dao', function () {
