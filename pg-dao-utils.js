@@ -1,8 +1,10 @@
-var mapper              = require('./mapper');
+'use strict';
+
+let mapper              = require('./mapper');
 
 
-var getUpdateFields = function (map) {
-    var result = map.filter(function (it) {
+let getUpdateFields = function (map) {
+    let result = map.filter(function (it) {
         if (it.indexOf('__') >= 0) {
             return false;
         }
@@ -17,8 +19,8 @@ var getUpdateFields = function (map) {
     return result;
 };
 
-var createInsertFieldList = function (fields) {
-    var fieldList = '';
+let createInsertFieldList = function (fields) {
+    let fieldList = '';
     fields.forEach(function (it) {
         if (fieldList) {
             fieldList += ', ';
@@ -32,8 +34,8 @@ var createInsertFieldList = function (fields) {
     return fieldList;
 };
 
-var createInsertParamList = function (fields) {
-    var paramList = '';
+let createInsertParamList = function (fields) {
+    let paramList = '';
     fields.forEach(function (it, index) {
         if (paramList) {
             paramList += ', ';
@@ -45,8 +47,8 @@ var createInsertParamList = function (fields) {
     return paramList;
 };
 
-var createUpdateFieldAndParamList = function (fields) {
-    var result = '';
+let createUpdateFieldAndParamList = function (fields) {
+    let result = '';
     fields.forEach(function (it, index) {
         if (result) {
             result += ', ';
@@ -58,8 +60,8 @@ var createUpdateFieldAndParamList = function (fields) {
     return result;
 };
 
-var createSelectFieldList = function (fields) {
-    var result = '';
+let createSelectFieldList = function (fields) {
+    let result = '';
     fields.forEach(function (it) {
         if (result) {
             result += ', ';
@@ -71,9 +73,9 @@ var createSelectFieldList = function (fields) {
     return result;
 };
 
-var createParams = function (fields, entity) {
-    var params = fields.map(function (it) {
-        var value = null;
+let createParams = function (fields, entity) {
+    let params = fields.map(function (it) {
+        let value = null;
         if (it in entity) {
             value = entity[it];
         }

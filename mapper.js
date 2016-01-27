@@ -1,15 +1,16 @@
-var _ = require('underscore');
+'use strict';
 
+let _ = require('underscore');
 
-var fromFlatObject = function (flat) {
+let fromFlatObject = function (flat) {
     if (!_.isObject(flat)) {
         throw 'Argument is not an object.';
     }
    
-    var result = {};
-    var key;
+    let result = {};
+    let key;
     
-    var curNested,
+    let curNested,
         tokens,
         i;
     
@@ -35,23 +36,23 @@ var fromFlatObject = function (flat) {
     return result;
 };
 
-var toFlatFieldName = function (nestedFieldName) {
+let toFlatFieldName = function (nestedFieldName) {
     if (!_.isString(nestedFieldName)) {
         throw 'Argument is not a string.';
     }
     
-    var tokens = nestedFieldName.split('.');
-    var result = tokens
+    let tokens = nestedFieldName.split('.');
+    let result = tokens
         .map(function (it) { return camelCaseToUnderscore(it); })
         .join('__');
     
     return result;
 };
 
-var transformKeys = function (obj, transformer) {
-    var result = {};
+let transformKeys = function (obj, transformer) {
+    let result = {};
     
-    var key, transKey;
+    let key, transKey;
     for (key in obj) {
         if (!obj.hasOwnProperty(key)) {
             continue;
@@ -70,13 +71,13 @@ var transformKeys = function (obj, transformer) {
     return result;
 };
 
-var camelCaseToUnderscore = function (camelCase) {
+let camelCaseToUnderscore = function (camelCase) {
     if (!_.isString(camelCase)) {
         throw 'Argument is not a string.';
     }
     
-    var result = '';
-    var i;
+    let result = '';
+    let i;
     
     for (i = 0; i < camelCase.length; ++i) {
         if (i > 0 && camelCase[i] === camelCase[i].toUpperCase()
@@ -96,14 +97,14 @@ var camelCaseToUnderscore = function (camelCase) {
     return result;
 };
 
-var underscoreToCamelCase = function (underscore) {
+let underscoreToCamelCase = function (underscore) {
     if (!_.isString(underscore)) {
         throw 'Argument is not a string.';
     }
     
-    var result = '';
-    var i;
-    var upper = false;
+    let result = '';
+    let i;
+    let upper = false;
     
     for (i = 0; i < underscore.length; ++i) {
         if (underscore[i] === '_') {

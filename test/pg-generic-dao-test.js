@@ -18,11 +18,15 @@ describe('infrastructure', function() {
                 
         
         it('connectionString', function () {
-            assert.equal(dao.connectionString(), connStr);
+            assert.equal(dao.connectTo(), connStr);
         });
         
         it('table', function () {
             assert.equal(dao.table(), tableName);
+        });
+        
+        it('fields', function () {
+            assert.equal(dao.fields(), columns);
         });
         
         it('exec, save and find', function (done) {
@@ -112,7 +116,7 @@ describe('infrastructure', function() {
                 .then(function (entity) {
                     assert.ok(!!entity.id);
                     
-                    dao.delete(entity.id)
+                    dao.delete(entity)
                         .then(function () {
                             dao.find(entity.id)
                                 .then(function (found) {

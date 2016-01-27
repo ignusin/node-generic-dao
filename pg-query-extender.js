@@ -1,11 +1,13 @@
-var _           = require('underscore');
-var mapper      = require('./mapper');
+'use strict';
 
-var createOrderByClause = function (sorting) {
-    var orderClause = '';
+let _           = require('underscore');
+let mapper      = require('./mapper');
+
+let createOrderByClause = function (sorting) {
+    let orderClause = '';
     
     if (_.isArray(sorting)) {
-        var complexOrder = sorting
+        let complexOrder = sorting
             .map(function (it) {
                 return 'r."' + mapper.toFlatFieldName(it.field) + '" '
                     + (it.direction === 'ASC' ? 'ASC' : 'DESC')
@@ -25,16 +27,16 @@ var createOrderByClause = function (sorting) {
     return orderClause;    
 };
 
-var createFilterByClause = function (filter, alias, paramIndex) {
+let createFilterByClause = function (filter, alias, paramIndex) {
     if (!_.isArray(filter)) {
         throw 'Invalid filter argument.';
     }
     
-    var query;
-    var params = [];
-    var recursive = false;
-    var i;
-    var recResult;
+    let query;
+    let params = [];
+    let recursive = false;
+    let i;
+    let recResult;
     
     paramIndex = paramIndex || 1;
     
@@ -74,7 +76,7 @@ var createFilterByClause = function (filter, alias, paramIndex) {
         }
     }
     
-    var aliasPrefix = alias ? alias + '.' : '';
+    let aliasPrefix = alias ? alias + '.' : '';
     
     if (!recursive) {
         if (filter.length === 3) {
@@ -92,7 +94,7 @@ var createFilterByClause = function (filter, alias, paramIndex) {
         }
     }
     
-    var result = {
+    let result = {
         query: query,
         params: params
     };
@@ -100,31 +102,31 @@ var createFilterByClause = function (filter, alias, paramIndex) {
     return result;
 };
 
-var orderBy = function (query, sorting) {
-    var orderClause = createOrderByClause(sorting);
-    var result = 'SELECT * FROM (' + query + ') r ' + orderClause;
+let orderBy = function (query, sorting) {
+    let orderClause = createOrderByClause(sorting);
+    let result = 'SELECT * FROM (' + query + ') r ' + orderClause;
     
     return result;
 };
 
-var pageBy = function (query, sorting, paging) {
+let pageBy = function (query, sorting, paging) {
     if (!_.isObject(paging)) {
         throw 'Invalid type of paging argument.';
     }
     
-    var orderClause = createOrderByClause(sorting);
-    var result = 'SELECT r.* FROM (' + query + ') r ' + orderClause
+    let orderClause = createOrderByClause(sorting);
+    let result = 'SELECT r.* FROM (' + query + ') r ' + orderClause
         + ' LIMIT ' + paging.size
         + ' OFFSET ' + (paging.size * (paging.index - 1)).toString();
         
     return result;
 };
 
-var filterBy = function (query, filter) {
-    var filterClause = createFilterByClause(filter, 'r');
-    var filteredQuery = 'SELECT * FROM (' + query + ') r WHERE ' + filterClause.query;
+let filterBy = function (query, filter) {
+    let filterClause = createFilterByClause(filter, 'r');
+    let filteredQuery = 'SELECT * FROM (' + query + ') r WHERE ' + filterClause.query;
     
-    var result = {
+    let result = {
         query: filteredQuery,
         params: filterClause.params
     };
@@ -132,8 +134,8 @@ var filterBy = function (query, filter) {
     return result;
 };
 
-var extend = function (query, filter, sorting, paging) {
-    var result = {
+let extend = function (query, filter, sorting, paging) {
+    let result = {
         query: query,
         params: []
     };
