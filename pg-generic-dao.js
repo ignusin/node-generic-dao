@@ -1,3 +1,5 @@
+'use strict';
+
 var pg                  = require('pg');
 var Promise             = require('promise');
 var _                   = require('underscore');
@@ -7,22 +9,27 @@ var pgDaoUtils          = require('./pg-dao-utils');
 var pgQueryExtender     = require('./pg-query-extender');
 
 
-var PgGenericDao = function (connStr, table, map) {
-    if (_.isEmpty(connStr) || !_.isString(connStr)) {
-        throw 'ConnStr argument is missing or is not an object.';
+var PgGenericDao = function (options) {
+    if (_.isEmpty(options) || !_.isObject(options)) {
+        throw new Error('Options argument is missing or is not an object');
     }
     
-    if (_.isEmpty(table) || !_.isString(table)) {
-        throw 'Table argument is missing or is not a string.';
+    if (_.isEmpty(options.connectTo) || !_.isString(options.connectTo)) {
+        throw new Error('ConnectTo option is missing or is not a string.');
     }
     
-    if (_.isEmpty(map) || !_.isArray(map)) {
-        throw 'Map argument is missing or is not an array.';
+    if (_.isEmpty(options.table) || !_.isString(options.table)) {
+        throw new Error('Table argument is missing or is not a string.');
     }
     
-    this._connStr = connStr;
-    this._table = table;
-    this._map = map;
+    if (_.isEmpty(options.fields) || !_.isArray(options.fields)) {
+        throw new Error('Fields argument is missing or is not an array.');
+    }
+    
+    this._connStr = options.connectTo;
+    this._table = options.table;
+    this._fields = options.fields;
+    this._instanceFactory = options.instanceFactory || null;
 };
 
 PgGenericDao.prototype.connectionString = function () {
@@ -33,48 +40,48 @@ PgGenericDao.prototype.table = function () {
     return this._table;
 };
 
-PgGenericDao.prototype.map = function () {
-    return this._map;
+PgGenericDao.prototype.fields = function () {
+    return this._fields;
 };
 
 PgGenericDao.prototype.save = function (entity) {
     var toInsert = {};
-    this.map().forEach(function (field) {
+    this.fields().forEach(function (field) {
         toInsert[field] = entity[field];
     });
     
-    var promise = PgGenericDao.insert(
-        this.connectionString(),
-        this.table(),
-        toInsert,
-        'id'
-    );
+    var promise = PgGenericDao.insert({
+        connectTo: this.connectionString(),
+        table: this.table(),
+        value: toInsert,
+        idField: 'id'
+    });
     
     return promise;
 };
 
 PgGenericDao.prototype.update = function (entity) {
     var toUpdate = {};
-    this.map().forEach(function (field) {
+    this.fields().forEach(function (field) {
         toUpdate[field] = entity[field];
     });
     
-    var promise = PgGenericDao.update(
-        this.connectionString(),
-        this.table(),
-        toUpdate,
-        [ 'id', '=', entity.id ]
-    );
+    var promise = PgGenericDao.update({
+        connectTo: this.connectionString(),
+        table: this.table(),
+        value: toUpdate,
+        filter: [ 'id', '=', entity.id ]
+    });
     
     return promise;
 };
 
 PgGenericDao.prototype.delete = function (id) {
-    var promise = PgGenericDao.delete(
-        this.connectionString(),
-        this.table(),
-        [ 'id', '=', id ]
-    );
+    var promise = PgGenericDao.delete({
+        connectTo: this.connectionString(),
+        table: this.table(),
+        filter: [ 'id', '=', id ]
+    });
     
     return promise;
 };
@@ -83,12 +90,12 @@ PgGenericDao.prototype.find = function (id) {
     var self = this;
     
     return new Promise(function (resolve, reject) {
-        PgGenericDao.queryByFields(
-            self.connectionString(),
-            self.table(),
-            self.map(),
-            [ 'id', '=', id ]
-        )
+        PgGenericDao.queryByFields({
+            connectTo: self.connectionString(),
+            table: self.table(),
+            fields: self.fields(),
+            filter: [ 'id', '=', id ]
+        })
         .then(function (result) {
             if (result.length) {
                 resolve(result[0]);
@@ -103,27 +110,33 @@ PgGenericDao.prototype.find = function (id) {
     });
 };
 
-PgGenericDao.prototype.all = function (filter, sorting, paging) {
-    return PgGenericDao.queryByFields(
-        this.connectionString(),
-        this.table(),
-        this.map(),
-        filter,
-        sorting,
-        paging
-    );
+PgGenericDao.prototype.all = function (options) {
+    options = options || {}; 
+    
+    return PgGenericDao.queryByFields({
+        connectTo: this.connectionString(),
+        table: this.table(),
+        fields: this.fields(),
+        filter: options.filter,
+        sorting: options.sorting,
+        paging: options.paging
+    });
 };
 
-PgGenericDao.rawTransformedQuery = function (connStr, query, params) {
+PgGenericDao.rawTransformedQuery = function (options) {
+    if (_.isEmpty(options) || !_.isObject(options)) {
+        throw new Error('Options argument is missing or is not an object');
+    }
+    
     return new Promise(function (resolve, reject) {
-        pg.connect(connStr, function (err, client, done) {
+        pg.connect(options.connectTo, function (err, client, done) {
             if (err) {
                 done();
                 reject(err);
                 return;
             }
             
-            client.query(query, params, function (err, result) {
+            client.query(options.query, options.params, function (err, result) {
                 if (err) {
                     done();
                     reject(err);
@@ -144,16 +157,20 @@ PgGenericDao.rawTransformedQuery = function (connStr, query, params) {
     });
 };
 
-PgGenericDao.rawExec = function (connStr, query, params) {
+PgGenericDao.rawExec = function (options) {
+    if (_.isEmpty(options) || !_.isObject(options)) {
+        throw new Error('Options argument is missing or is not an object');
+    }
+    
     return new Promise(function (resolve, reject) {
-        pg.connect(connStr, function (err, client, done) {
+        pg.connect(options.connectTo, function (err, client, done) {
             if (err) {
                 done();
                 reject(err);
                 return;
             }
             
-            client.query(query, params, function (err, result) {
+            client.query(options.query, options.params, function (err, result) {
                 if (err) {
                     done();
                     reject(err);
@@ -167,11 +184,15 @@ PgGenericDao.rawExec = function (connStr, query, params) {
     });
 };
 
-PgGenericDao.insert = function (connStr, table, fieldsAndValues, serialIdField) {
+PgGenericDao.insert = function (options) {
+    if (_.isEmpty(options) || !_.isObject(options)) {
+        throw new Error('Options argument is missing or is not an object');
+    }
+    
     var map = [];
     var key;
-    for (key in fieldsAndValues) {
-        if (!fieldsAndValues.hasOwnProperty(key)) {
+    for (key in options.value) {
+        if (!options.value.hasOwnProperty(key)) {
             continue;
         }
         
@@ -181,35 +202,43 @@ PgGenericDao.insert = function (connStr, table, fieldsAndValues, serialIdField) 
     var updateFields = pgDaoUtils.getUpdateFields(map);        
     var fieldList = pgDaoUtils.createInsertFieldList(updateFields);
     var paramList = pgDaoUtils.createInsertParamList(updateFields); 
-    var params = pgDaoUtils.createParams(updateFields, fieldsAndValues);
+    var params = pgDaoUtils.createParams(updateFields, options.value);
     
-    var query = 'INSERT INTO "' + table + '" (' + fieldList + ') VALUES (' + paramList + ')';
+    var query = 'INSERT INTO "' + options.table + '" (' + fieldList + ') VALUES (' + paramList + ')';
     
-    if (serialIdField) {
-        query += ' RETURNING "' + serialIdField + '"';
+    if (options.idField) {
+        query += ' RETURNING "' + options.idField + '"';
     }
     
     return new Promise(function (resolve, reject) {
-        PgGenericDao.rawExec(connStr, query, params)
-            .then(function (result) {
-                if (serialIdField) {
-                    var id = result.rows[0][serialIdField];
-                    fieldsAndValues[serialIdField] = id;
-                }
-                
-                resolve(fieldsAndValues);
-            })
-            .catch(function (err) {
-                reject(err);
-            });
+        PgGenericDao.rawExec({
+            connectTo: options.connectTo,
+            query: query,
+            params: params
+        })
+        .then(function (result) {
+            if (options.idField) {
+                var id = result.rows[0][options.idField];
+                options.value[options.idField] = id;
+            }
+            
+            resolve(options.value);
+        })
+        .catch(function (err) {
+            reject(err);
+        });
     });
 };
 
-PgGenericDao.update = function (connStr, table, fieldsAndValues, searchClause) {
+PgGenericDao.update = function (options) {
+    if (_.isEmpty(options) || !_.isObject(options)) {
+        throw new Error('Options argument is missing or is not an object');
+    }
+    
     var map = [];
     var key;
-    for (key in fieldsAndValues) {
-        if (!fieldsAndValues.hasOwnProperty(key)) {
+    for (key in options.value) {
+        if (!options.value.hasOwnProperty(key)) {
             continue;
         }
         map.push(key);
@@ -217,11 +246,11 @@ PgGenericDao.update = function (connStr, table, fieldsAndValues, searchClause) {
     
     var updateFields = pgDaoUtils.getUpdateFields(map);    
     var fieldAndParamList = pgDaoUtils.createUpdateFieldAndParamList(updateFields);
-    var params = pgDaoUtils.createParams(updateFields, fieldsAndValues);
+    var params = pgDaoUtils.createParams(updateFields, options.value);
     
     var filter;
-    if (searchClause) {
-        filter = pgQueryExtender.createFilterByClause(searchClause, '', params.length + 1);
+    if (options.filter) {
+        filter = pgQueryExtender.createFilterByClause(options.filter, '', params.length + 1);
         filter.params.forEach(function (it) { params.push(it); });    
     }
     else {
@@ -231,21 +260,30 @@ PgGenericDao.update = function (connStr, table, fieldsAndValues, searchClause) {
         };
     }
             
-    var query = 'UPDATE "' + table + '" SET ' + fieldAndParamList;
+    var query = 'UPDATE "' + options.table + '" SET ' + fieldAndParamList;
     if (filter.query) {
         query += ' WHERE ' + filter.query;
     }
     
-    var promise = PgGenericDao.rawExec(connStr, query, params);
+    var promise = PgGenericDao.rawExec({
+        connectTo: options.connectTo,
+        query: query,
+        params: params
+    });
+    
     return promise;
 };
 
-PgGenericDao.delete = function (connStr, table, filter) {
-    var query = 'DELETE FROM "' + table + '"';
+PgGenericDao.delete = function (options) {
+    if (_.isEmpty(options) || !_.isObject(options)) {
+        throw new Error('Options argument is missing or is not an object');
+    }
+    
+    var query = 'DELETE FROM "' + options.table + '"';
     
     var filterQuery;
-    if (filter) {
-        filterQuery = pgQueryExtender.createFilterByClause(filter);
+    if (options.filter) {
+        filterQuery = pgQueryExtender.createFilterByClause(options.filter);
     }
     else {
         filterQuery = {
@@ -264,22 +302,30 @@ PgGenericDao.delete = function (connStr, table, filter) {
         });
     }
     
-    var promise = PgGenericDao.rawExec(connStr, query, params);
+    var promise = PgGenericDao.rawExec({
+        connectTo: options.connectTo,
+        query: query,
+        params: params
+    });
     return promise;
 };
 
-PgGenericDao.queryByFields = function (connStr, table, fields, filter, sorting, paging) {
-    var fieldList = pgDaoUtils.createSelectFieldList(fields);
-    var query = 'SELECT ' + fieldList + ' FROM "' + table + '"';
+PgGenericDao.queryByFields = function (options) {
+    if (_.isEmpty(options) || !_.isObject(options)) {
+        throw new Error('Options argument is missing or is not an object');
+    }
+    
+    var fieldList = pgDaoUtils.createSelectFieldList(options.fields);
+    var query = 'SELECT ' + fieldList + ' FROM "' + options.table + '"';
     
     var extendedQuery = pgQueryExtender
-        .extend(query, filter, sorting, paging);
+        .extend(query, options.filter, options.sorting, options.paging);
     
-    return PgGenericDao.rawTransformedQuery(
-        connStr,
-        extendedQuery.query,
-        extendedQuery.params
-    );
+    return PgGenericDao.rawTransformedQuery({
+        connectTo: options.connectTo,
+        query: extendedQuery.query,
+        params: extendedQuery.params
+    });
 };
 
 

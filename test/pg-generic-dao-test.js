@@ -8,7 +8,11 @@ describe('infrastructure', function() {
         var connStr = 'postgres://postgres:123qwe@localhost:5432/tests';
         var tableName = 'test_table_1';
         var columns = [ 'id', 'veryLongName', 'shortname' ];
-        var dao = new PgGenericDao(connStr, tableName, columns);
+        var dao = new PgGenericDao({
+            connectTo: connStr,
+            table: tableName,
+            fields: columns
+        });
         
         var eraseAllQuery = 'DELETE FROM "' + tableName + '"';
                 
@@ -22,107 +26,123 @@ describe('infrastructure', function() {
         });
         
         it('exec, save and find', function (done) {
-            PgGenericDao.rawExec(connStr, eraseAllQuery, [])
-                .then(function () {
-                    dao.save({
-                        veryLongName: 'abc',
-                        shortname: 'def'
-                    })
-                    .then(function (entity) {
-                        assert.ok(!!entity.id);
-                        
-                        dao.find(entity.id)
-                            .then(function (found) {
-                                assert.deepEqual(found, entity);
-                                done();
-                            })
-                            .catch(function (err) {
-                                done(err);
-                            });
-                    })
-                    .catch(function (err) {
-                        done(err);
-                    });
+            PgGenericDao.rawExec({
+                connectTo: connStr,
+                query: eraseAllQuery,
+                params: []
+            })
+            .then(function () {
+                dao.save({
+                    veryLongName: 'abc',
+                    shortname: 'def'
+                })
+                .then(function (entity) {
+                    assert.ok(!!entity.id);
+                    
+                    dao.find(entity.id)
+                        .then(function (found) {
+                            assert.deepEqual(found, entity);
+                            done();
+                        })
+                        .catch(function (err) {
+                            done(err);
+                        });
                 })
                 .catch(function (err) {
                     done(err);
                 });
+            })
+            .catch(function (err) {
+                done(err);
+            });
         });
         
         it('exec, save, update and find', function (done) {
-            PgGenericDao.rawExec(connStr, eraseAllQuery, [])
-                .then(function () {
-                    dao.save({
-                        veryLongName: 'abc',
-                        shortname: 'def'
-                    })
-                    .then(function (entity) {
-                        assert.ok(!!entity.id);
-                        
-                        entity.veryLongName = 'new very long name';
-                        entity.shortname = 'new shortname';
-                        
-                        dao.update(entity)
-                            .then(function () {
-                                dao.find(entity.id)
-                                    .then(function (found) {
-                                        assert.deepEqual(found, entity);
-                                        done();
-                                    })
-                                    .catch(function (err) {
-                                        done(err);
-                                    });
-                            })
-                            .catch(function (err) {
-                                done(err);
-                            });                        
-                    })
-                    .catch(function (err) {
-                        done(err);
-                    });
+            PgGenericDao.rawExec({
+                connectTo: connStr,
+                query: eraseAllQuery,
+                params: []
+            })
+            .then(function () {
+                dao.save({
+                    veryLongName: 'abc',
+                    shortname: 'def'
+                })
+                .then(function (entity) {
+                    assert.ok(!!entity.id);
+                    
+                    entity.veryLongName = 'new very long name';
+                    entity.shortname = 'new shortname';
+                    
+                    dao.update(entity)
+                        .then(function () {
+                            dao.find(entity.id)
+                                .then(function (found) {
+                                    assert.deepEqual(found, entity);
+                                    done();
+                                })
+                                .catch(function (err) {
+                                    done(err);
+                                });
+                        })
+                        .catch(function (err) {
+                            done(err);
+                        });                        
                 })
                 .catch(function (err) {
                     done(err);
                 });
+            })
+            .catch(function (err) {
+                done(err);
+            });
         });
         
         it('exec, save, delete and find', function (done) {
-            PgGenericDao.rawExec(connStr, eraseAllQuery, [])
-                .then(function () {
-                    dao.save({
-                        veryLongName: 'abc',
-                        shortname: 'def'
-                    })
-                    .then(function (entity) {
-                        assert.ok(!!entity.id);
-                        
-                        dao.delete(entity.id)
-                            .then(function () {
-                                dao.find(entity.id)
-                                    .then(function (found) {
-                                        assert.strictEqual(found, null);
-                                        done();
-                                    })
-                                    .catch(function (err) {
-                                        done(err);
-                                    });
-                            })
-                            .catch(function (err) {
-                                done(err);
-                            });                        
-                    })
-                    .catch(function (err) {
-                        done(err);
-                    });
+            PgGenericDao.rawExec({
+                connectTo: connStr,
+                query: eraseAllQuery,
+                params: []
+            })
+            .then(function () {
+                dao.save({
+                    veryLongName: 'abc',
+                    shortname: 'def'
+                })
+                .then(function (entity) {
+                    assert.ok(!!entity.id);
+                    
+                    dao.delete(entity.id)
+                        .then(function () {
+                            dao.find(entity.id)
+                                .then(function (found) {
+                                    assert.strictEqual(found, null);
+                                    done();
+                                })
+                                .catch(function (err) {
+                                    done(err);
+                                });
+                        })
+                        .catch(function (err) {
+                            done(err);
+                        });                        
                 })
                 .catch(function (err) {
                     done(err);
                 });
+            })
+            .catch(function (err) {
+                done(err);
+            });
         });
         
         it('exec, save and all', function (done) {
             PgGenericDao
-                .rawExec(connStr, eraseAllQuery, [])
+                .rawExec({
+                    connectTo: connStr,
+                    query: eraseAllQuery,
+                    params: []
+                })
                 .then(function () {
                     dao.save({
                         veryLongName: 'abc',
@@ -159,7 +179,11 @@ describe('infrastructure', function() {
         
         it('exec, save, all filtered', function (done) {
             PgGenericDao
-                .rawExec(connStr, eraseAllQuery, [])
+                .rawExec({
+                    connectTo: connStr,
+                    query: eraseAllQuery,
+                    params: []
+                })
                 .then(function () {
                     Promise.all([
                         dao.save({ veryLongName: 'abc', shortname: 'def' }),
@@ -167,11 +191,13 @@ describe('infrastructure', function() {
                         dao.save({ veryLongName: 'bcd', shortname: 'efg' })
                     ])
                     .then(function () {
-                        dao.all([
-                            '$and',
-                            [ 'veryLongName', '=', 'abc' ],
-                            [ 'shortname', '=', 'efg' ]
-                        ])
+                        dao.all({
+                            filter: [
+                                '$and',
+                                [ 'veryLongName', '=', 'abc' ],
+                                [ 'shortname', '=', 'efg' ]
+                            ]
+                        })
                         .then(function (data) {
                             assert.equal(data.length, 1);
                             assert.equal(data[0].veryLongName, 'abc');
@@ -194,7 +220,11 @@ describe('infrastructure', function() {
         
         it('exec, save, all sorted', function (done) {
             PgGenericDao
-                .rawExec(connStr, eraseAllQuery, [])
+                .rawExec({
+                    connectTo: connStr,
+                    query: eraseAllQuery,
+                    params: []
+                })
                 .then(function () {
                     Promise.all([
                         dao.save({ veryLongName: 'abc', shortname: 'def' }),
@@ -202,13 +232,12 @@ describe('infrastructure', function() {
                         dao.save({ veryLongName: 'bcd', shortname: 'efg' })
                     ])
                     .then(function () {
-                        dao.all(
-                            null,
-                            [
+                        dao.all({
+                            sorting: [
                                 { field: 'veryLongName', direction: 'ASC' },
                                 { field: 'shortname', direction: 'DESC' }
                             ]
-                        )
+                        })
                         .then(function (data) {
                             assert.equal(data.length, 3);
                             assert.equal(data[0].veryLongName, 'abc');
@@ -231,7 +260,11 @@ describe('infrastructure', function() {
         
         it('exec, save, all paged', function (done) {
             PgGenericDao
-                .rawExec(connStr, eraseAllQuery, [])
+                .rawExec({
+                    connectTo: connStr,
+                    query: eraseAllQuery,
+                    params: []
+                })
                 .then(function () {
                     Promise.all([
                         dao.save({ veryLongName: 'abc', shortname: 'def' }),
@@ -239,14 +272,13 @@ describe('infrastructure', function() {
                         dao.save({ veryLongName: 'bcd', shortname: 'efg' })
                     ])
                     .then(function () {
-                        dao.all(
-                            null,
-                            [
+                        dao.all({
+                            sorting: [
                                 { field: 'veryLongName', direction: 'ASC' },
                                 { field: 'shortname', direction: 'DESC' }
                             ],
-                            { size: 1, index: 1 }
-                        )
+                            paging: { size: 1, index: 1 }
+                        })
                         .then(function (data) {
                             assert.equal(data.length, 1);
                             assert.equal(data[0].veryLongName, 'abc');
@@ -269,7 +301,11 @@ describe('infrastructure', function() {
         
         it('exec, save, all fully extended', function (done) {
             PgGenericDao
-                .rawExec(connStr, eraseAllQuery, [])
+                .rawExec({
+                    connectTo: connStr,
+                    query: eraseAllQuery,
+                    params: []
+                })
                 .then(function () {
                     Promise.all([
                         dao.save({ veryLongName: 'abc', shortname: 'def' }),
@@ -277,18 +313,18 @@ describe('infrastructure', function() {
                         dao.save({ veryLongName: 'bcd', shortname: 'efg' })
                     ])
                     .then(function () {
-                        dao.all(
-                            [
+                        dao.all({
+                            filter: [
                                 '$and',
                                 [ 'veryLongName', '=', 'abc' ],
                                 [ 'shortname', '=', 'efg' ]
                             ],
-                            [
+                            sorting: [
                                 { field: 'veryLongName', direction: 'ASC' },
                                 { field: 'shortname', direction: 'DESC' }
                             ],
-                            { size: 1, index: 1 }
-                        )
+                            paging: { size: 1, index: 1 }
+                        })
                         .then(function (data) {
                             assert.equal(data.length, 1);
                             assert.equal(data[0].veryLongName, 'abc');

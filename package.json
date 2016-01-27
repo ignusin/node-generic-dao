@@ -1,6 +1,6 @@
 {
   "name": "pg-generic-dao",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "PostgreSQL DAO infrastructure to handle common database scenarios.",
   "main": "index.js",
   "directories": {
