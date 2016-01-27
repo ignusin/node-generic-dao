@@ -1,6 +1,6 @@
 'use strict';
 
-let mapper              = require('./mapper');
+const mapper              = require('./mapper');
 
 
 let getUpdateFields = function (map) {

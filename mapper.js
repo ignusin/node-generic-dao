@@ -1,6 +1,6 @@
 'use strict';
 
-let _ = require('underscore');
+const _ = require('underscore');
 
 let fromFlatObject = function (flat) {
     if (!_.isObject(flat)) {

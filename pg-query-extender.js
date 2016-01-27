@@ -1,7 +1,7 @@
 'use strict';
 
-let _           = require('underscore');
-let mapper      = require('./mapper');
+const _           = require('underscore');
+const mapper      = require('./mapper');
 
 let createOrderByClause = function (sorting) {
     let orderClause = '';
